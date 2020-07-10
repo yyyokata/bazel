@@ -81,8 +81,10 @@ int IsSymlinkOrJunction(const WCHAR* path, bool* result, wstring* error) {
     return IsSymlinkOrJunctionResult::kError;
   }
 
-  DWORD attrs = ::GetFileAttributesW(path);
-  if (attrs == INVALID_FILE_ATTRIBUTES) {
+  AutoHandle handle;
+  WIN32_FIND_DATAW find_file_data;
+  handle = ::FindFirstFileW(path, &find_file_data);
+  if (handle == INVALID_HANDLE_VALUE) {
     DWORD err = GetLastError();
     if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
       return IsSymlinkOrJunctionResult::kDoesNotExist;
@@ -94,7 +96,9 @@ int IsSymlinkOrJunction(const WCHAR* path, bool* result, wstring* error) {
     }
     return IsSymlinkOrJunctionResult::kError;
   } else {
-    *result = (attrs & FILE_ATTRIBUTE_REPARSE_POINT);
+    *result = (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+              ((find_file_data.dwReserved0 & IO_REPARSE_TAG_SYMLINK) ||
+               (find_file_data.dwReserved0 & IO_REPARSE_TAG_MOUNT_POINT));
     return IsSymlinkOrJunctionResult::kSuccess;
   }
 }
