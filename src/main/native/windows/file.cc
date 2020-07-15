@@ -97,8 +97,8 @@ int IsSymlinkOrJunction(const WCHAR* path, bool* result, wstring* error) {
     return IsSymlinkOrJunctionResult::kError;
   } else {
     *result = (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
-              ((find_file_data.dwReserved0 & IO_REPARSE_TAG_SYMLINK) ||
-               (find_file_data.dwReserved0 & IO_REPARSE_TAG_MOUNT_POINT));
+              ((find_file_data.dwReserved0 == IO_REPARSE_TAG_SYMLINK) ||
+               (find_file_data.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT));
     return IsSymlinkOrJunctionResult::kSuccess;
   }
 }
