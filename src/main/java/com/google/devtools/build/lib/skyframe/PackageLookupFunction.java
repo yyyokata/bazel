@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.actions.FileValue;
 import com.google.devtools.build.lib.actions.InconsistentFilesystemException;
 import com.google.devtools.build.lib.cmdline.LabelConstants;
@@ -158,12 +159,12 @@ public class PackageLookupFunction implements SkyFunction {
     // to having restart the SkyFunction after every new dependency. However, if we try to batch
     // the missing value keys, more dependencies than necessary will be declared. This wart can be
     // fixed once we have nicer continuation support [skyframe-loading]
-    for (Root packagePathEntry : pkgLocator.getPathEntries()) {
+    for (ArtifactRoot artifactRoot : pkgLocator.getArtifactRoots()) {
 
       // This checks for the build file names in the correct precedence order.
       for (BuildFileName buildFileName : buildFilesByPriority) {
         PackageLookupValue result =
-            getPackageLookupValue(env, packagePathEntry, packageKey, buildFileName);
+            getPackageLookupValue(env, artifactRoot, packageKey, buildFileName);
         if (result == null) {
           return null;
         }
@@ -204,17 +205,18 @@ public class PackageLookupFunction implements SkyFunction {
 
   private PackageLookupValue getPackageLookupValue(
       Environment env,
-      Root packagePathEntry,
+      ArtifactRoot artifactRoot,
       PackageIdentifier packageIdentifier,
       BuildFileName buildFileName)
       throws InterruptedException, PackageLookupFunctionException {
     PathFragment buildFileFragment = buildFileName.getBuildFileFragment(packageIdentifier);
-    RootedPath buildFileRootedPath = RootedPath.toRootedPath(packagePathEntry, buildFileFragment);
+    RootedPath buildFileRootedPath =
+        RootedPath.toRootedPath(artifactRoot.getRoot(), buildFileFragment);
 
     if (crossRepositoryLabelViolationStrategy == CrossRepositoryLabelViolationStrategy.ERROR) {
       // Is this path part of a local repository?
       RootedPath currentPath =
-          RootedPath.toRootedPath(packagePathEntry, buildFileFragment.getParentDirectory());
+          RootedPath.toRootedPath(artifactRoot.getRoot(), buildFileFragment.getParentDirectory());
       SkyKey repositoryLookupKey = LocalRepositoryLookupValue.key(currentPath);
 
       // TODO(jcater): Consider parallelizing these lookups.
@@ -252,7 +254,7 @@ public class PackageLookupFunction implements SkyFunction {
         if (localRepositoryPath.isAbsolute()) {
           // We need the package path to also be absolute.
           pathToRequestedPackage =
-              packagePathEntry.getRelative(pathToRequestedPackage).asFragment();
+              artifactRoot.getRoot().getRelative(pathToRequestedPackage).asFragment();
         }
         PathFragment remainingPath = pathToRequestedPackage.relativeTo(localRepositoryPath);
         PackageIdentifier correctPackage =
@@ -274,7 +276,7 @@ public class PackageLookupFunction implements SkyFunction {
       return null;
     }
     if (fileValue.isFile()) {
-      return PackageLookupValue.success(buildFileRootedPath.getRoot(), buildFileName);
+      return PackageLookupValue.success(artifactRoot, buildFileName);
     }
 
     return PackageLookupValue.NO_BUILD_FILE_VALUE;
@@ -312,7 +314,14 @@ public class PackageLookupFunction implements SkyFunction {
       // Otherwise ExternalPackageUtil.findWorkspaceFile() returned something whose name is not in
       // BuildFileName
       Verify.verify(filename != null);
-      return PackageLookupValue.success(workspaceFile.getRoot(), filename);
+      PathPackageLocator packageLocator = PrecomputedValue.PATH_PACKAGE_LOCATOR.get(env);
+      for (ArtifactRoot root : packageLocator.getArtifactRoots()) {
+        if (root.getRoot().equals(workspaceFile.getRoot())) {
+          return PackageLookupValue.success(root, filename);
+        }
+      }
+      return PackageLookupValue.success(
+          ArtifactRoot.asSourceRoot(workspaceFile.getRoot()), filename);
     }
   }
 
@@ -370,8 +379,7 @@ public class PackageLookupFunction implements SkyFunction {
       }
 
       if (fileValue.isFile()) {
-        return PackageLookupValue.success(
-            repositoryValue, Root.fromPath(repositoryValue.getPath()), buildFileName);
+        return PackageLookupValue.success(repositoryValue, buildFileName);
       }
     }
 

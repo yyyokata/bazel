@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.actions.FileStateValue;
 import com.google.devtools.build.lib.actions.FileValue;
 import com.google.devtools.build.lib.analysis.BlazeDirectories;
@@ -340,8 +341,10 @@ public abstract class PackageLookupFunctionTest extends FoundationTestCase {
 
   @Test
   public void testPackageLookupValueHashCodeAndEqualsContract() throws Exception {
-    Root root1 = Root.fromPath(rootDirectory.getRelative("root1"));
-    Root root2 = Root.fromPath(rootDirectory.getRelative("root2"));
+    ArtifactRoot root1 =
+        ArtifactRoot.asSourceRoot(Root.fromPath(rootDirectory.getRelative("root1")));
+    ArtifactRoot root2 =
+        ArtifactRoot.asSourceRoot(Root.fromPath(rootDirectory.getRelative("root2")));
     // Our (seeming) duplication of parameters here is intentional. Some of the subclasses of
     // PackageLookupValue are supposed to have reference equality semantics, and some are supposed
     // to have logical equality semantics.

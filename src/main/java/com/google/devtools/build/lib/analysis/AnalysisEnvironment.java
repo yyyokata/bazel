@@ -28,7 +28,6 @@ import com.google.devtools.build.lib.analysis.config.BuildConfiguration;
 import com.google.devtools.build.lib.events.ExtendedEventHandler;
 import com.google.devtools.build.lib.syntax.StarlarkSemantics;
 import com.google.devtools.build.lib.vfs.PathFragment;
-import com.google.devtools.build.lib.vfs.Root;
 import com.google.devtools.build.skyframe.SkyFunction;
 
 /**
@@ -109,7 +108,7 @@ public interface AnalysisEnvironment extends ActionRegistry {
    * <p>If you use this erroneously, inconsistencies can occur, for example, creating a source
    * artifact with the wrong package path entry or in the wrong package.
    */
-  Artifact getSourceArtifactForNinjaBuild(PathFragment execpath, Root root);
+  Artifact getSourceArtifactForNinjaBuild(PathFragment execpath, ArtifactRoot root);
 
   /**
    * Returns the artifact for the derived file {@code rootRelativePath}, creating it if necessary,

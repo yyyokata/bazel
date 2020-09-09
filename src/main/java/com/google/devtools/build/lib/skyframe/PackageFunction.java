@@ -27,6 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.actions.FileValue;
 import com.google.devtools.build.lib.actions.InconsistentFilesystemException;
 import com.google.devtools.build.lib.clock.BlazeClock;
@@ -471,6 +472,7 @@ public class PackageFunction implements SkyFunction {
               starlarkSemantics,
               preludeLabel,
               packageLookupValue.getRoot(),
+              packageLookupValue.getArtifactRoot(),
               env);
       if (packageCacheEntry == null) {
         return null;
@@ -1167,6 +1169,7 @@ public class PackageFunction implements SkyFunction {
       StarlarkSemantics starlarkSemantics,
       @Nullable Label preludeLabel,
       Root packageRoot,
+      ArtifactRoot artifactRoot,
       Environment env)
       throws InterruptedException, PackageFunctionException {
     if (packageProgress != null) {
@@ -1270,6 +1273,7 @@ public class PackageFunction implements SkyFunction {
               defaultVisibility,
               starlarkSemantics,
               globberWithSkyframeGlobDeps);
+      pkgBuilder.setArtifactRoot(artifactRoot);
       long loadTimeNanos = Math.max(BlazeClock.nanoTime() - startTimeNanos, 0L);
       LoadedPackageCacheEntry packageCacheEntry =
           new LoadedPackageCacheEntry(

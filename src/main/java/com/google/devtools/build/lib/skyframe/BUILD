@@ -1734,6 +1734,7 @@ java_library(
         ":package_lookup_value",
         ":precomputed_value",
         ":repository_value",
+        "//src/main/java/com/google/devtools/build/lib/actions:artifacts",
         "//src/main/java/com/google/devtools/build/lib/actions:file_metadata",
         "//src/main/java/com/google/devtools/build/lib/cmdline",
         "//src/main/java/com/google/devtools/build/lib/cmdline:LabelValidator",
@@ -1757,6 +1758,7 @@ java_library(
     deps = [
         ":repository_value",
         ":sky_functions",
+        "//src/main/java/com/google/devtools/build/lib/actions:artifacts",
         "//src/main/java/com/google/devtools/build/lib/cmdline",
         "//src/main/java/com/google/devtools/build/lib/concurrent",
         "//src/main/java/com/google/devtools/build/lib/packages",
@@ -2228,6 +2230,7 @@ java_library(
     srcs = ["RepositoryValue.java"],
     deps = [
         ":sky_functions",
+        "//src/main/java/com/google/devtools/build/lib/actions:artifacts",
         "//src/main/java/com/google/devtools/build/lib/cmdline",
         "//src/main/java/com/google/devtools/build/lib/concurrent",
         "//src/main/java/com/google/devtools/build/lib/rules:repository/repository_directory_value",

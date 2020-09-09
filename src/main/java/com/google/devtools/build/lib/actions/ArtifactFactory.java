@@ -192,6 +192,14 @@ public class ArtifactFactory implements ArtifactResolver {
   }
 
   @Override
+  public SourceArtifact getSourceArtifact(
+      PathFragment execPath, ArtifactRoot artifactRoot, ArtifactOwner owner) {
+    Preconditions.checkNotNull(owner, "%s %s", execPath, artifactRoot);
+    return (SourceArtifact)
+        getArtifact(artifactRoot, execPath, owner, null, /*contentBasedPath=*/ false);
+  }
+
+  @Override
   public SourceArtifact getSourceArtifact(PathFragment execPath, Root root) {
     return getSourceArtifact(execPath, root, ArtifactOwner.NULL_OWNER);
   }

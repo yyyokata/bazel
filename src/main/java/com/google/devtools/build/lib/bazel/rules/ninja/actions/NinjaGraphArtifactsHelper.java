@@ -142,7 +142,7 @@ class NinjaGraphArtifactsHelper {
     return ruleContext
         .getAnalysisEnvironment()
         .getSourceArtifactForNinjaBuild(
-            execPath, ruleContext.getRule().getPackage().getSourceRoot().get());
+            execPath, ruleContext.getRule().getPackage().getArtifactRoot());
   }
 
   public PathFragment getOutputRootPath() {

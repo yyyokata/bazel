@@ -55,7 +55,6 @@ import com.google.devtools.build.lib.util.CrashFailureDetails;
 import com.google.devtools.build.lib.util.Fingerprint;
 import com.google.devtools.build.lib.vfs.FileSystemUtils;
 import com.google.devtools.build.lib.vfs.PathFragment;
-import com.google.devtools.build.lib.vfs.Root;
 import com.google.devtools.build.skyframe.SkyFunction;
 import com.google.devtools.build.skyframe.SkyFunctionName;
 import java.io.IOException;
@@ -152,7 +151,7 @@ public final class AnalysisTestUtil {
     }
 
     @Override
-    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, Root root) {
+    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, ArtifactRoot root) {
       return original.getSourceArtifactForNinjaBuild(execPath, root);
     }
 
@@ -365,7 +364,7 @@ public final class AnalysisTestUtil {
     }
 
     @Override
-    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, Root root) {
+    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, ArtifactRoot root) {
       return null;
     }
 
@@ -505,7 +504,9 @@ public final class AnalysisTestUtil {
     Set<String> files = new LinkedHashSet<>();
     for (Artifact artifact : artifacts) {
       ArtifactRoot root = artifact.getRoot();
-      if (root.isSourceRoot()) {
+      if (root.isExternalSourceRoot()) {
+        files.add("src(external) " + artifact.getRootRelativePath());
+      } else if (root.isSourceRoot()) {
         files.add("src " + artifact.getRootRelativePath());
       } else {
         String name = rootMap.getOrDefault(root.getRoot().toString(), "/");

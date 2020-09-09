@@ -50,6 +50,12 @@ public class SerializationDepsUtils {
         }
 
         @Override
+        public Artifact getSourceArtifact(
+            PathFragment execPath, ArtifactRoot artifactRoot, ArtifactOwner owner) {
+          return new SourceArtifact(artifactRoot, execPath, owner);
+        }
+
+        @Override
         public Artifact getSourceArtifact(PathFragment execPath, Root root) {
           throw new UnsupportedOperationException();
         }

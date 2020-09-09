@@ -600,6 +600,12 @@ public final class SequencedSkyframeExecutorTest extends BuildViewTestCase {
             }
 
             @Override
+            public Artifact getSourceArtifact(
+                PathFragment execPath, ArtifactRoot artifactRoot, ArtifactOwner owner) {
+              throw new UnsupportedOperationException();
+            }
+
+            @Override
             public Artifact getSourceArtifact(PathFragment execPath, Root root) {
               throw new UnsupportedOperationException();
             }

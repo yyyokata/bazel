@@ -177,7 +177,8 @@ public class CcToolchainProviderHelper {
     ImmutableList.Builder<PathFragment> builtInIncludeDirectoriesBuilder = ImmutableList.builder();
     for (String s : toolchainConfigInfo.getCxxBuiltinIncludeDirectories()) {
       try {
-        builtInIncludeDirectoriesBuilder.add(resolveIncludeDir(s, sysroot, toolsDirectory));
+        builtInIncludeDirectoriesBuilder.add(
+            resolveIncludeDir(s, sysroot, toolsDirectory, ruleContext));
       } catch (InvalidConfigurationException e) {
         ruleContext.ruleError(e.getMessage());
       }
@@ -328,15 +329,24 @@ public class CcToolchainProviderHelper {
    * <p>If it is absolute, it remains unchanged.
    */
   static PathFragment resolveIncludeDir(
-      String s, PathFragment sysroot, PathFragment crosstoolTopPathFragment)
-      throws InvalidConfigurationException {
+      String s,
+      PathFragment sysroot,
+      PathFragment crosstoolTopPathFragment,
+      RuleContext ruleContext)
+      throws InvalidConfigurationException, InterruptedException {
     PathFragment pathPrefix;
     String pathString;
     int packageEndIndex = s.indexOf(PACKAGE_END);
     if (packageEndIndex != -1 && s.startsWith(PACKAGE_START)) {
       String packageString = s.substring(PACKAGE_START.length(), packageEndIndex);
       try {
-        pathPrefix = PackageIdentifier.parse(packageString).getSourceRoot();
+        pathPrefix =
+            PackageIdentifier.parse(packageString)
+                .getExecPath(
+                    ruleContext
+                        .getAnalysisEnvironment()
+                        .getStarlarkSemantics()
+                        .getBool(BuildLanguageOptions.EXPERIMENTAL_SIBLING_REPOSITORY_LAYOUT));
       } catch (LabelSyntaxException e) {
         throw new InvalidConfigurationException("The package '" + packageString + "' is not valid");
       }

@@ -278,7 +278,7 @@ public final class Actions {
         outputFileNames != null
             ? Preconditions.checkNotNull(label, actionLookupKey)
                 .getPackageIdentifier()
-                .getSourceRoot()
+                .getOutputRelativePath()
             : null;
     // Loop over the actions, looking at all outputs for conflicts.
     int actionIndex = 0;
@@ -309,7 +309,7 @@ public final class Actions {
         } else {
           // No: populate the output label map with this artifact if applicable: if this
           // artifact corresponds to a target that is an OutputFile with associated rule this label.
-          PathFragment rootRelativePath = output.getRootRelativePath();
+          PathFragment rootRelativePath = output.getOutputRelativePath();
           if (packageDirectory != null && rootRelativePath.startsWith(packageDirectory)) {
             PathFragment packageRelativePath = rootRelativePath.relativeTo(packageDirectory);
             Label outputLabel = outputFileNames.get(packageRelativePath.getPathString());

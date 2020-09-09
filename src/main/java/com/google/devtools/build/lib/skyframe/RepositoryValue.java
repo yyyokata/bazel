@@ -17,11 +17,13 @@ package com.google.devtools.build.lib.skyframe;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.cmdline.RepositoryName;
 import com.google.devtools.build.lib.concurrent.BlazeInterners;
 import com.google.devtools.build.lib.rules.repository.RepositoryDirectoryValue;
 import com.google.devtools.build.lib.skyframe.serialization.autocodec.AutoCodec;
 import com.google.devtools.build.lib.vfs.Path;
+import com.google.devtools.build.lib.vfs.Root;
 import com.google.devtools.build.skyframe.AbstractSkyKey;
 import com.google.devtools.build.skyframe.SkyFunctionName;
 import com.google.devtools.build.skyframe.SkyValue;
@@ -33,10 +35,13 @@ public abstract class RepositoryValue implements SkyValue {
   /** Returns the path to the repository. */
   public abstract Path getPath();
 
+  public abstract ArtifactRoot getArtifactRoot();
+
   /** Successful lookup value. */
   public static final class SuccessfulRepositoryValue extends RepositoryValue {
     private final RepositoryName repositoryName;
     private final RepositoryDirectoryValue repositoryDirectory;
+    private final ArtifactRoot artifactRoot;
 
     /** Creates a repository with a given name in a certain directory. */
     public SuccessfulRepositoryValue(
@@ -44,6 +49,7 @@ public abstract class RepositoryValue implements SkyValue {
       Preconditions.checkArgument(repository.repositoryExists());
       this.repositoryName = repositoryName;
       this.repositoryDirectory = repository;
+      this.artifactRoot = ArtifactRoot.asExternalSourceRoot(Root.fromPath(repository.getPath()));
     }
 
     @Override
@@ -54,6 +60,11 @@ public abstract class RepositoryValue implements SkyValue {
     @Override
     public Path getPath() {
       return repositoryDirectory.getPath();
+    }
+
+    @Override
+    public ArtifactRoot getArtifactRoot() {
+      return artifactRoot;
     }
 
     @Override
@@ -91,6 +102,11 @@ public abstract class RepositoryValue implements SkyValue {
 
     @Override
     public Path getPath() {
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public ArtifactRoot getArtifactRoot() {
       throw new IllegalStateException();
     }
 

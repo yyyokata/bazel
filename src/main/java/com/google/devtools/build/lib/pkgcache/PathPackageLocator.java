@@ -17,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.cmdline.LabelConstants;
 import com.google.devtools.build.lib.cmdline.PackageIdentifier;
 import com.google.devtools.build.lib.events.Event;
@@ -53,6 +54,7 @@ public class PathPackageLocator implements Serializable {
   private static final String WORKSPACE_WILDCARD = "%workspace%";
 
   private final ImmutableList<Root> pathEntries;
+  private final ImmutableList<ArtifactRoot> artifactRoots;
   // Transient because this is an injected value in Skyframe, and as such, its serialized
   // representation is used as a key. We want a change to output base not to invalidate things.
   private final transient Path outputBase;
@@ -64,6 +66,10 @@ public class PathPackageLocator implements Serializable {
       Path outputBase, List<Root> pathEntries, List<BuildFileName> buildFilesByPriority) {
     this.outputBase = outputBase;
     this.pathEntries = ImmutableList.copyOf(pathEntries);
+    artifactRoots =
+        pathEntries.stream()
+            .map(ArtifactRoot::asSourceRoot)
+            .collect(ImmutableList.toImmutableList());
     this.buildFilesByPriority = ImmutableList.copyOf(buildFilesByPriority);
   }
 
@@ -133,7 +139,7 @@ public class PathPackageLocator implements Serializable {
       for (BuildFileName buildFileName : buildFilesByPriority) {
         Path buildFile =
             outputBase
-                .getRelative(packageIdentifier.getSourceRoot())
+                .getRelative(packageIdentifier.getOutputRelativePath())
                 .getRelative(buildFileName.getFilenameFragment());
         try {
           FileStatus stat = cache.get().statIfFound(buildFile, Symlinks.FOLLOW);
@@ -152,6 +158,10 @@ public class PathPackageLocator implements Serializable {
   /** Returns an immutable ordered list of the directories on the package path. */
   public ImmutableList<Root> getPathEntries() {
     return pathEntries;
+  }
+
+  public ImmutableList<ArtifactRoot> getArtifactRoots() {
+    return artifactRoots;
   }
 
   @Override

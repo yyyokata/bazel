@@ -1416,8 +1416,9 @@ public abstract class SkyframeExecutor implements WalkableGraphFactory, Configur
       // We need to take additional steps to keep the corresponding data structures in sync.
       // (Some of the additional steps are carried out by ConfiguredTargetValueInvalidationListener,
       // and some by BuildView#buildHasIncompatiblePackageRoots and #updateSkyframe.)
-      artifactFactory.setSourceArtifactRoots(
-          createSourceArtifactRootMapOnNewPkgLocator(oldLocator, pkgLocator));
+      createSourceArtifactRootMapOnNewPkgLocator(oldLocator, pkgLocator);
+      // artifactFactory.setSourceArtifactRoots(
+      // createSourceArtifactRootMapOnNewPkgLocator(oldLocator, pkgLocator));
     }
   }
 

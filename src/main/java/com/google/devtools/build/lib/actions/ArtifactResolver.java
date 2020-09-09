@@ -38,6 +38,8 @@ public interface ArtifactResolver {
    */
   Artifact getSourceArtifact(PathFragment execPath, Root root, ArtifactOwner owner);
 
+  Artifact getSourceArtifact(PathFragment execPath, ArtifactRoot artifactRoot, ArtifactOwner owner);
+
   /**
    * Returns the source Artifact for the specified path, creating it if not found and setting its
    * root and execPath.

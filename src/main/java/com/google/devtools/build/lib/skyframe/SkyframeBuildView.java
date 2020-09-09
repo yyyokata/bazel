@@ -35,6 +35,7 @@ import com.google.devtools.build.lib.actions.ActionLookupKey;
 import com.google.devtools.build.lib.actions.ActionLookupValue;
 import com.google.devtools.build.lib.actions.ArtifactFactory;
 import com.google.devtools.build.lib.actions.ArtifactPrefixConflictException;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.actions.MutableActionGraph.ActionConflictException;
 import com.google.devtools.build.lib.actions.PackageRoots;
 import com.google.devtools.build.lib.analysis.AnalysisFailureEvent;
@@ -424,10 +425,19 @@ public final class SkyframeBuildView {
         packages.addTransitive(ctValue.getTransitivePackagesForPackageRootResolution());
       }
     }
+    ImmutableList<Package> packageList =
+        singleSourceRoot == null ? packages.build().toList() : null;
     PackageRoots packageRoots =
         singleSourceRoot == null
-            ? new MapAsPackageRoots(collectPackageRoots(packages.build().toList()))
+            ? new MapAsPackageRoots(collectPackageRoots(packageList))
             : new PackageRootsNoSymlinkCreation(singleSourceRoot);
+    ImmutableSet<ArtifactRoot> artifactRoots =
+        singleSourceRoot == null
+            ? packageList.stream()
+                .map(Package::getArtifactRoot)
+                .filter(Objects::nonNull)
+                .collect(ImmutableSet.toImmutableSet())
+            : ImmutableSet.of(ArtifactRoot.asSourceRoot(singleSourceRoot));
 
     ImmutableMap<ActionAnalysisMetadata, ConflictException> actionConflicts = ImmutableMap.of();
     try (SilentCloseable c =
@@ -460,7 +470,8 @@ public final class SkyframeBuildView {
           ImmutableList.copyOf(cts),
           result.getWalkableGraph(),
           ImmutableMap.copyOf(aspects),
-          packageRoots);
+          packageRoots,
+          artifactRoots);
     }
 
     Pair<Boolean, ViewCreationFailedException> errors =
@@ -545,7 +556,8 @@ public final class SkyframeBuildView {
         ImmutableList.copyOf(cts),
         result.getWalkableGraph(),
         ImmutableMap.copyOf(aspects),
-        packageRoots);
+        packageRoots,
+        artifactRoots);
   }
 
   private boolean shouldCheckForConflicts(ImmutableSet<SkyKey> newKeys) {

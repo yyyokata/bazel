@@ -26,6 +26,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.cmdline.Label;
 import com.google.devtools.build.lib.cmdline.LabelConstants;
 import com.google.devtools.build.lib.cmdline.LabelSyntaxException;
@@ -122,6 +123,8 @@ public class Package {
    * Optional#empty} if this {@link Package} is derived from a WORKSPACE file.
    */
   private Optional<Root> sourceRoot;
+
+  private ArtifactRoot artifactRoot;
 
   /**
    * The "Make" environment of this package, containing package-local
@@ -375,6 +378,10 @@ public class Package {
     return Root.fromPath(buildFileRootedPath.getRoot().getRelative(current));
   }
 
+  public ArtifactRoot getArtifactRoot() {
+    return artifactRoot;
+  }
+
   /**
    * Package initialization: part 3 of 3: applies all other settings and completes
    * initialization of the package.
@@ -402,9 +409,11 @@ public class Package {
           packageIdentifier.equals(LabelConstants.EXTERNAL_PACKAGE_IDENTIFIER));
       this.sourceRoot = Optional.empty();
     } else {
-      Root sourceRoot = getSourceRoot(filename, packageIdentifier.getSourceRoot());
+      Root sourceRoot = getSourceRoot(filename, packageIdentifier.getPackageFragment());
       if (sourceRoot.asPath() == null
-          || !sourceRoot.getRelative(packageIdentifier.getSourceRoot()).equals(packageDirectory)) {
+          || !sourceRoot
+              .getRelative(packageIdentifier.getPackageFragment())
+              .equals(packageDirectory)) {
         throw new IllegalArgumentException(
             "Invalid BUILD file name for package '"
                 + packageIdentifier
@@ -414,12 +423,13 @@ public class Package {
                 + sourceRoot
                 + " with packageDirectory "
                 + packageDirectory
-                + " and package identifier source root "
-                + packageIdentifier.getSourceRoot()
+                + " and package identifier package fragment "
+                + packageIdentifier.getPackageFragment()
                 + ")");
       }
       this.sourceRoot = Optional.of(sourceRoot);
     }
+    this.artifactRoot = builder.artifactRoot;
 
     this.makeEnv = ImmutableMap.copyOf(builder.makeEnv);
     this.targets = ImmutableSortedKeyMap.copyOf(builder.targets);
@@ -847,6 +857,7 @@ public class Package {
     private RootedPath filename = null;
     private Label buildFileLabel = null;
     private InputFile buildFile = null;
+    private ArtifactRoot artifactRoot = null;
     // TreeMap so that the iteration order of variables is predictable. This is useful so that the
     // serialized representation is deterministic.
     private final TreeMap<String, String> makeEnv = new TreeMap<>();
@@ -1001,6 +1012,11 @@ public class Package {
         // This can't actually happen.
         throw new AssertionError("Package BUILD file has an illegal name: " + filename);
       }
+      return this;
+    }
+
+    public Builder setArtifactRoot(ArtifactRoot artifactRoot) {
+      this.artifactRoot = artifactRoot;
       return this;
     }
 

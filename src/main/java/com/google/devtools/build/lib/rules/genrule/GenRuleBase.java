@@ -352,7 +352,7 @@ public abstract class GenRuleBase implements RuleConfiguredTargetFactory {
       }
 
       PathFragment ruleDirRootRelativePath =
-          ruleContext.getRule().getLabel().getPackageIdentifier().getSourceRoot();
+          ruleContext.getRule().getLabel().getPackageIdentifier().getOutputRelativePath();
       PathFragment ruleDirExecPath =
           ruleContext
               .getBinOrGenfilesDirectory()

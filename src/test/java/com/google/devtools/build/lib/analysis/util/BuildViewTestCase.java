@@ -1280,7 +1280,9 @@ public abstract class BuildViewTestCase extends FoundationTestCase {
   }
 
   protected Artifact getSourceArtifact(PathFragment rootRelativePath, Root root) {
-    return view.getArtifactFactory().getSourceArtifact(rootRelativePath, root);
+    return view.getArtifactFactory()
+        .getSourceArtifact(
+            rootRelativePath, ArtifactRoot.asSourceRoot(root), ArtifactOwner.NULL_OWNER);
   }
 
   protected Artifact getSourceArtifact(String name) {
@@ -2080,7 +2082,7 @@ public abstract class BuildViewTestCase extends FoundationTestCase {
     }
 
     @Override
-    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, Root root) {
+    public Artifact getSourceArtifactForNinjaBuild(PathFragment execPath, ArtifactRoot root) {
       throw new UnsupportedOperationException();
     }
 

@@ -15,6 +15,8 @@ package com.google.devtools.build.lib.skyframe;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.actions.PackageRoots;
 import com.google.devtools.build.lib.analysis.ConfiguredAspect;
 import com.google.devtools.build.lib.analysis.ConfiguredTarget;
@@ -32,6 +34,7 @@ public class SkyframeAnalysisResult {
   private final WalkableGraph walkableGraph;
   private final ImmutableMap<AspectKey, ConfiguredAspect> aspects;
   private final PackageRoots packageRoots;
+  private final ImmutableSet<ArtifactRoot> artifactRoots;
 
   SkyframeAnalysisResult(
       boolean hasLoadingError,
@@ -40,7 +43,8 @@ public class SkyframeAnalysisResult {
       ImmutableList<ConfiguredTarget> configuredTargets,
       WalkableGraph walkableGraph,
       ImmutableMap<AspectKey, ConfiguredAspect> aspects,
-      PackageRoots packageRoots) {
+      PackageRoots packageRoots,
+      ImmutableSet<ArtifactRoot> artifactRoots) {
     this.hasLoadingError = hasLoadingError;
     this.hasAnalysisError = hasAnalysisError;
     this.hasActionConflicts = hasActionConflicts;
@@ -48,6 +52,7 @@ public class SkyframeAnalysisResult {
     this.walkableGraph = walkableGraph;
     this.aspects = aspects;
     this.packageRoots = packageRoots;
+    this.artifactRoots = artifactRoots;
   }
 
   /**
@@ -81,5 +86,9 @@ public class SkyframeAnalysisResult {
 
   public PackageRoots getPackageRoots() {
     return packageRoots;
+  }
+
+  public ImmutableSet<ArtifactRoot> getArtifactRoots() {
+    return artifactRoots;
   }
 }

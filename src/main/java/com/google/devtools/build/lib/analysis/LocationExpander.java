@@ -312,7 +312,7 @@ public final class LocationExpander {
       TreeSet<String> paths = Sets.newTreeSet();
       for (Artifact artifact : artifacts) {
         PathFragment execPath =
-            takeExecPath ? artifact.getExecPath() : artifact.getRootRelativePath();
+            takeExecPath ? artifact.getExecPath() : artifact.getOutputRelativePath();
         if (execPath != null) {  // omit middlemen etc
           paths.add(execPath.getCallablePathString());
         }

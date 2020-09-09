@@ -252,7 +252,7 @@ public final class ConfiguredTargetFactory {
                   analysisEnvironment
                       .getStarlarkSemantics()
                       .getBool(BuildLanguageOptions.EXPERIMENTAL_SIBLING_REPOSITORY_LAYOUT)),
-              inputFile.getPackage().getSourceRoot().get(),
+              inputFile.getPackage().getArtifactRoot(),
               ConfiguredTargetKey.builder()
                   .setLabel(target.getLabel())
                   .setConfiguration(config)

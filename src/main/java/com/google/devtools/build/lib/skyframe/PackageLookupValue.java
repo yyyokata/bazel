@@ -16,6 +16,7 @@ package com.google.devtools.build.lib.skyframe;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.cmdline.PackageIdentifier;
 import com.google.devtools.build.lib.concurrent.BlazeInterners;
 import com.google.devtools.build.lib.packages.BuildFileName;
@@ -68,12 +69,12 @@ public abstract class PackageLookupValue implements SkyValue {
   protected PackageLookupValue() {}
 
   public static PackageLookupValue success(
-      RepositoryValue repository, Root root, BuildFileName buildFileName) {
-    return new SuccessfulPackageLookupValue(repository, root, buildFileName);
+      RepositoryValue repository, BuildFileName buildFileName) {
+    return new SuccessfulPackageLookupValue(repository, buildFileName);
   }
 
-  public static PackageLookupValue success(Root root, BuildFileName buildFileName) {
-    return new SuccessfulPackageLookupValue(null, root, buildFileName);
+  public static PackageLookupValue success(ArtifactRoot artifactRoot, BuildFileName buildFileName) {
+    return new SuccessfulPackageLookupValue(artifactRoot, buildFileName);
   }
 
   public static PackageLookupValue invalidPackageName(String errorMsg) {
@@ -93,6 +94,9 @@ public abstract class PackageLookupValue implements SkyValue {
 
   /** For a successful package lookup, returns the build file name that the package uses. */
   public abstract BuildFileName getBuildFileName();
+
+  @Nullable
+  public abstract ArtifactRoot getArtifactRoot();
 
   /** Returns whether the package lookup was successful. */
   public abstract boolean packageExists();
@@ -165,12 +169,20 @@ public abstract class PackageLookupValue implements SkyValue {
     @Nullable private final RepositoryValue repository;
 
     private final Root root;
+    @Nullable private final ArtifactRoot artifactRoot;
     private final BuildFileName buildFileName;
 
-    SuccessfulPackageLookupValue(
-        @Nullable RepositoryValue repository, Root root, BuildFileName buildFileName) {
+    SuccessfulPackageLookupValue(RepositoryValue repository, BuildFileName buildFileName) {
       this.repository = repository;
-      this.root = root;
+      artifactRoot = repository.getArtifactRoot();
+      root = artifactRoot.getRoot();
+      this.buildFileName = buildFileName;
+    }
+
+    SuccessfulPackageLookupValue(ArtifactRoot artifactRoot, BuildFileName buildFileName) {
+      this.repository = null;
+      this.artifactRoot = artifactRoot;
+      root = artifactRoot.getRoot();
       this.buildFileName = buildFileName;
     }
 
@@ -192,6 +204,11 @@ public abstract class PackageLookupValue implements SkyValue {
     @Override
     public BuildFileName getBuildFileName() {
       return buildFileName;
+    }
+
+    @Override
+    public ArtifactRoot getArtifactRoot() {
+      return artifactRoot;
     }
 
     @Override
@@ -235,6 +252,11 @@ public abstract class PackageLookupValue implements SkyValue {
 
     @Override
     public BuildFileName getBuildFileName() {
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public ArtifactRoot getArtifactRoot() {
       throw new IllegalStateException();
     }
   }

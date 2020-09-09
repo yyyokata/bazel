@@ -123,7 +123,7 @@ py_binary(name = "py",
                    "e/f/g/ignored.py" ],
           deps = ["//:root"])
 EOF
-  bazel build $pkg:foo $EXTRA_BUILD_FLAGS >&$TEST_log || fail "build failed"
+  bazel build --sandbox_debug --verbose_failures $pkg:foo $EXTRA_BUILD_FLAGS >&$TEST_log || fail "build failed"
   workspace_root=$PWD
 
   cd ${PRODUCT_NAME}-bin/$pkg/foo${EXT}.runfiles

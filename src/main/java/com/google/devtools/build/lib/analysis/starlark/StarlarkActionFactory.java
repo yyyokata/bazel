@@ -121,7 +121,7 @@ public class StarlarkActionFactory implements StarlarkActionFactoryApi {
     if (Starlark.NONE.equals(sibling)) {
       fragment = ruleContext.getPackageDirectory().getRelative(PathFragment.create(filename));
     } else {
-      PathFragment original = ((Artifact) sibling).getRootRelativePath();
+      PathFragment original = ((Artifact) sibling).getOutputRelativePath();
       fragment = original.replaceName(filename);
     }
 
@@ -141,7 +141,7 @@ public class StarlarkActionFactory implements StarlarkActionFactoryApi {
     if (Starlark.NONE.equals(sibling)) {
       fragment = ruleContext.getPackageDirectory().getRelative(PathFragment.create(filename));
     } else {
-      PathFragment original = ((Artifact) sibling).getRootRelativePath();
+      PathFragment original = ((Artifact) sibling).getOutputRelativePath();
       fragment = original.replaceName(filename);
     }
 

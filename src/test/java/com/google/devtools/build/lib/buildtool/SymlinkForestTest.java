@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Maps;
 import com.google.devtools.build.lib.cmdline.LabelConstants;
 import com.google.devtools.build.lib.cmdline.LabelSyntaxException;
 import com.google.devtools.build.lib.cmdline.PackageIdentifier;
@@ -39,6 +40,7 @@ import com.google.devtools.build.lib.vfs.Symlinks;
 import com.google.devtools.build.lib.vfs.inmemoryfs.InMemoryFileSystem;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -151,14 +153,14 @@ public class SymlinkForestTest {
   }
 
   // Create package for external repo
-  private static PackageIdentifier createExternalPkg(Root root, String repo, String pkg)
-      throws IOException, LabelSyntaxException {
-    if (root != null) {
-      Path repoRoot = root.getRelative(LabelConstants.EXTERNAL_PACKAGE_NAME).getRelative(repo);
-      repoRoot.getRelative(pkg).createDirectoryAndParents();
-      FileSystemUtils.createEmptyFile(repoRoot.getRelative(pkg).getChild("file"));
-    }
-    return PackageIdentifier.create(RepositoryName.create("@" + repo), PathFragment.create(pkg));
+  private static Map.Entry<PackageIdentifier, Root> createExternalPkgRootEntry(
+      Root root, String repo, String pkg) throws IOException, LabelSyntaxException {
+    Path repoRoot = root.getRelative(LabelConstants.EXTERNAL_PACKAGE_NAME).getRelative(repo);
+    repoRoot.getRelative(pkg).createDirectoryAndParents();
+    FileSystemUtils.createEmptyFile(repoRoot.getRelative(pkg).getChild("file"));
+    return Maps.immutableEntry(
+        PackageIdentifier.create(RepositoryName.create("@" + repo), PathFragment.create(pkg)),
+        Root.fromPath(repoRoot));
   }
 
   // Create package for main repo
@@ -278,12 +280,12 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir_lib/pkg"), mainRepo)
             .put(createMainPkg(mainRepo, ""), mainRepo)
             // Remote repo without top-level package.
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             // Remote repo with and without top-level package.
-            .put(createExternalPkg(outputBase, "Y", ""), outputBase)
-            .put(createExternalPkg(outputBase, "Y", "dir_y/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "Y", ""))
+            .put(createExternalPkgRootEntry(outputBase, "Y", "dir_y/pkg"))
             // Only top-level pkg.
-            .put(createExternalPkg(outputBase, "Z", ""), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "Z", ""))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -338,12 +340,12 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir_lib/pkg"), mainRepo)
             .put(createMainPkg(mainRepo, ""), mainRepo)
             // Remote repo without top-level package.
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             // Remote repo with and without top-level package.
-            .put(createExternalPkg(outputBase, "Y", ""), outputBase)
-            .put(createExternalPkg(outputBase, "Y", "dir_y/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "Y", ""))
+            .put(createExternalPkgRootEntry(outputBase, "Y", "dir_y/pkg"))
             // Only top-level pkg.
-            .put(createExternalPkg(outputBase, "Z", ""), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "Z", ""))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -406,7 +408,7 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir1/pkg/foo"), mainRepo)
             .put(createMainPkg(mainRepo, "dir2/pkg"), mainRepo)
             .put(createMainPkg(mainRepo, "dir3"), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -451,7 +453,7 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir3"), mainRepo)
             // external/ should not be linked even we have "//external/foo" package
             .put(createMainPkg(mainRepo, "external/foo"), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -494,7 +496,7 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir2/pkg"), mainRepo)
             // Empty package will cause every top-level files to be linked, except external/
             .put(createMainPkg(mainRepo, ""), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -537,7 +539,7 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir3"), mainRepo)
             // external/ should not be linked even we have "//external/foo" package
             .put(createMainPkg(mainRepo, "external/foo"), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -601,7 +603,7 @@ public class SymlinkForestTest {
     ImmutableMap<PackageIdentifier, Root> packageRootMap =
         ImmutableMap.<PackageIdentifier, Root>builder()
             .put(createMainPkg(mainRepo, ""), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -679,7 +681,7 @@ public class SymlinkForestTest {
             .put(createMainPkg(mainRepo, "dir2/pkg"), mainRepo)
             // Empty package will cause every top-level files to be linked, except external/
             .put(createMainPkg(mainRepo, ""), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =
@@ -769,7 +771,7 @@ public class SymlinkForestTest {
         ImmutableMap.<PackageIdentifier, Root>builder()
             .put(createMainPkg(mainRepo, "dir1/pkg/foo"), mainRepo)
             .put(createMainPkg(mainRepo, "dir2/pkg"), mainRepo)
-            .put(createExternalPkg(outputBase, "X", "dir_x/pkg"), outputBase)
+            .put(createExternalPkgRootEntry(outputBase, "X", "dir_x/pkg"))
             .build();
 
     ImmutableList<Path> plantedSymlinks =

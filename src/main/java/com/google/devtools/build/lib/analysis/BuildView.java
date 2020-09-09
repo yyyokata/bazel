@@ -36,7 +36,7 @@ import com.google.devtools.build.lib.actions.ActionLookupValue;
 import com.google.devtools.build.lib.actions.Actions;
 import com.google.devtools.build.lib.actions.Artifact;
 import com.google.devtools.build.lib.actions.ArtifactFactory;
-import com.google.devtools.build.lib.actions.PackageRoots;
+import com.google.devtools.build.lib.actions.ArtifactRoot;
 import com.google.devtools.build.lib.analysis.config.BuildConfiguration;
 import com.google.devtools.build.lib.analysis.config.BuildConfigurationCollection;
 import com.google.devtools.build.lib.analysis.config.BuildOptions;
@@ -95,6 +95,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -415,7 +416,7 @@ public class BuildView {
               keepGoing,
               loadingPhaseThreads,
               viewOptions.strictConflictChecks);
-      setArtifactRoots(skyframeAnalysisResult.getPackageRoots());
+      setArtifactRoots(skyframeAnalysisResult);
     } finally {
       skyframeBuildView.clearInvalidatedConfiguredTargets();
     }
@@ -761,8 +762,12 @@ public class BuildView {
    * Sets the possible artifact roots in the artifact factory. This allows the factory to resolve
    * paths with unknown roots to artifacts.
    */
-  private void setArtifactRoots(PackageRoots packageRoots) {
-    getArtifactFactory().setPackageRoots(packageRoots.getPackageRootLookup());
+  private void setArtifactRoots(SkyframeAnalysisResult analysisResult) {
+    getArtifactFactory().setPackageRoots(analysisResult.getPackageRoots().getPackageRootLookup());
+    getArtifactFactory()
+        .setSourceArtifactRoots(
+            analysisResult.getArtifactRoots().stream()
+                .collect(ImmutableMap.toImmutableMap(ArtifactRoot::getRoot, Function.identity())));
   }
 
   /**

@@ -249,6 +249,10 @@ public final class RepositoryName implements Serializable {
    * external/[repository name] for external repositories.
    */
   public PathFragment getSourceRoot() {
+    return PathFragment.EMPTY_FRAGMENT;
+  }
+
+  public PathFragment getOutputRelativePath() {
     return isDefault() || isMain()
         ? PathFragment.EMPTY_FRAGMENT
         : LabelConstants.EXTERNAL_REPOSITORY_LOCATION.getRelative(strippedName());
